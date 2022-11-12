@@ -2,48 +2,44 @@ import random
 
 
 class Employee:
+    def __init__(self, name, wage_per_hr=20, total_work_hrs=100, working_day_pm=20):
+        self.wage_per_hr = wage_per_hr
+        self.total_work_hrs = total_work_hrs
+        self.working_day_per_month = working_day_pm
+        self.name = name
+
+    def get_daily_wage(self, attendance):
+        if attendance == 1:
+            hr = 8
+        elif attendance == 2:
+            hr = 4
+        else:
+            hr = 0
+        daily_wage = hr * self.wage_per_hr
+        return daily_wage, hr
 
     def wage_monthly(self):
         """
         This function will calculate employee wage.
         :return: Employee attendance.
         """
-        is_present = 1
-        is_part_time = 2
-        wage_per_hr = 20
-        full_day_hr = 8
-        part_time_hr = 4
-        working_day_per_month = 20
-        is_absent = 0
-        emp_absent = 0
+        total_hrs = 0
+        day = 0
+        total_wage = 0
 
-        monthly_wage = 0
-
-        for day in range(1, working_day_per_month+1):
+        while total_hrs<self.total_work_hrs and day<self.working_day_per_month:
             attendance = random.randint(0, 2)
-            if attendance == is_present:
-                print('day:', day)
-                # print('Employee is present')
-                daily_wage = full_day_hr * wage_per_hr
-                print(f'Employee is present and its wage is:{daily_wage}')
+            daily_wage, hr = self.get_daily_wage(attendance)
 
-            elif attendance == is_part_time:
-                print('day:', day)
-                # print('Employee is working part-time')
-                daily_wage = wage_per_hr * part_time_hr
-                print(f'Employee is working part-time and its wage is:{daily_wage}')
+            total_wage += daily_wage
+            total_hrs += hr
+            day += 1
 
-            else :
-                attendance == is_absent
-                daily_wage = emp_absent * wage_per_hr
-                print('day:', day)
-                print(f'Employee is absent and its wage is:{daily_wage}')
-            monthly_wage += daily_wage
-
-        print('\n------> Monthly Wage <-------')
-        print (f'{monthly_wage:14}')
+        print('total work hour is: ', total_hrs)
+        print('total work day are: ', day)
+        print('total wage is: ', total_wage)
 
 
 if __name__ == '__main__':
-    emp = Employee()
+    emp = Employee('sujit')
     emp.wage_monthly()
