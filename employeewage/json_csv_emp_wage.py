@@ -1,3 +1,5 @@
+import csv
+import json
 import logging
 import random
 
@@ -27,6 +29,13 @@ class Employee:
             return hr
         except Exception as e:
             logging.exception(e)
+
+    def get_emp_dict(self):
+        """
+        Function returns dictionary containing contact attribute values
+        :return:
+        """
+        return {"emp_name": self.name, "working_days": self.working_day_per_month, "total_wage": self.total_wage}
 
     def as_string(self):
         return "{:^14} {:^10} {:^14}".format(self.name, self.working_day_per_month, self.total_wage)
@@ -71,26 +80,34 @@ class Company:
         :param empl_name: string
         :return: Employee object
         """
-
-        return self.emp_dict.get(empl_name)
+        try:
+            return self.emp_dict.get(empl_name)
+        except Exception as e:
+            logging.exception(e)
 
     def remove_emp(self, empl_name):
         """
         Function deletes existing employee from the employee_dict dictionary
         :return:
         """
-        if not self.get_emp(empl_name):
-            print("Employee not exist")
-            return
-        self.emp_dict.pop(empl_name)
+        try:
+            if not self.get_emp(empl_name):
+                print("Employee not exist")
+                return
+            self.emp_dict.pop(empl_name)
+        except Exception as e:
+            logging.exception(e)
 
     def display_details(self):
         """
         Function to display all employees
         """
-        print("{:<10} {:10} {:10}".format('Employee name', 'Working days', 'Total wage'))
-        for name, emp_obj in self.emp_dict.items():
-            print(emp_obj.as_string())
+        try:
+            print("{:<10} {:10} {:10}".format('Employee name', 'Working days', 'Total wage'))
+            for name, emp_obj in self.emp_dict.items():
+                print(emp_obj.as_string())
+        except Exception as e:
+            logging.exception(e)
 
     def update(self, employee_obj, data_dict):
         """
@@ -106,10 +123,25 @@ class Company:
         except Exception as e:
             logging.exception(e)
 
+    def get_emp_as_dict(self):
+        """
+        Function get employee details
+        :return: details_dict dictionary
+        """
+        try:
+            details_dict = {}
+            for key, value in self.emp_dict.items():
+                details_dict.update({value.name: value.get_emp_dict()})
+
+            return details_dict
+        except Exception as e:
+            logging.exception(e)
+
 
 class MulCompanies:
     def __init__(self):
         self.comp_dic = {}
+        self.json_dict = {}
 
     def add_company(self, obj_of_comp):
         """
@@ -150,22 +182,85 @@ class MulCompanies:
         This function retrieve data of a Company
 
         """
-        return self.comp_dic.get(comp_name)
+        try:
+            return self.comp_dic.get(comp_name)
+        except Exception as e:
+            logging.exception(e)
+
+    def write_to_json_file(self):
+        """
+        Function to write data to json file
+
+        """
+        try:
+            for company_name, company_obj in self.comp_dic.items():
+                emp_dict = company_obj.get_emp_as_dict()
+
+                self.json_dict.update({company_name: emp_dict})
+                json_object = json.dumps(self.json_dict, indent=4)
+                with open("emp_wage.json", "w") as write_file:
+                    write_file.write(json_object)
+        except Exception as e:
+            logging.exception(e)
+
+    def write_to_csv_file(self):
+        """
+        Function to write data to json file
+
+        """
+        try:
+            with open("emp_wage.csv", "w", newline='') as write_file:
+                fieldnames = ['emp_name', 'working_days', 'total_wage']
+
+                csv_writer = csv.DictWriter(write_file, fieldnames=fieldnames)
+                csv_writer.writeheader()
+
+                for company_name, company_object in self.comp_dic.items():
+                    emp_dictionary = company_object.get_emp_as_dict()
+                    for key, value in emp_dictionary.items():
+                        csv_writer.writerow(value)
+        except Exception as e:
+            logging.exception(e)
+
+
+def read_from_json():
+    """
+    Function to read
+    :return:
+    """
+    with open("emp_wage.json", "r") as read_file:
+        json_object = json.load(read_file)
+        print(json_object)
+
+
+def read_from_csv():
+    try:
+        with open("emp_wage.csv", "r") as read_csv:
+            csv_obj = csv.DictReader(read_csv)
+            for rows in csv_obj:
+                print(rows)
+    except Exception as e:
+        logging.exception(e)
 
 
 def add_employees():
-    company_name = input("Enter company name: ")
-    company_obj = multi_comp.comp_dic.get(company_name)
-    if not company_obj:
-        company_obj = Company(company_name)
-        multi_comp.add_company(company_obj)
-    emp_name = input("Employee name: ")
-    wage_pr_hr = int(input("Enter wage per hours: "))
-    max_hrs = int(input("Enter maximum working hour: "))
-    max_days = int(input("Enter maximum working days: "))
-    employee = Employee(emp_name, wage_pr_hr, max_hrs, max_days)
-    employee.wage_monthly()
-    company_obj.add_emp(employee)
+    try:
+        company_name = input("Enter company name: ")
+        company_obj = multi_comp.comp_dic.get(company_name)
+        if not company_obj:
+            company_obj = Company(company_name)
+            multi_comp.add_company(company_obj)
+        emp_name = input("Employee name: ")
+        wage_pr_hr = int(input("Enter wage per hours: "))
+        max_hrs = int(input("Enter maximum working hour: "))
+        max_days = int(input("Enter maximum working days: "))
+        employee = Employee(emp_name, wage_pr_hr, max_hrs, max_days)
+        employee.wage_monthly()
+        company_obj.add_emp(employee)
+        multi_comp.write_to_json_file()
+        multi_comp.write_to_csv_file()
+    except Exception as e:
+        print(e)
 
 
 def disp_employee():
@@ -179,6 +274,9 @@ def disp_employee():
             print("--> company not found or deleted <--")
             return
         company_obj.display_details()
+
+        multi_comp.write_to_json_file()
+        multi_comp.write_to_csv_file()
     except Exception as e:
         print(e)
 
@@ -192,6 +290,9 @@ def delete_employee():
         company_obj = multi_comp.get_comp(compan_name)
         employee_name = input("Enter employee name : ")
         company_obj.remove_emp(employee_name)
+
+        multi_comp.write_to_json_file()
+        multi_comp.write_to_csv_file()
     except Exception as e:
         print(e)
 
@@ -200,7 +301,12 @@ def display_company():
     """
     function to display company
     """
-    multi_comp.display_comp()
+    try:
+        multi_comp.display_comp()
+        multi_comp.write_to_json_file()
+        multi_comp.write_to_csv_file()
+    except Exception as e:
+        logging.exception(e)
 
 
 def update_employee():
@@ -224,6 +330,9 @@ def update_employee():
 
             company_ob.update(emp_object, {"update_name": employee_name, "update_wage": update_wage,
                                            "update_days": update_working_days, "update_hours": update_working_hrs})
+
+        multi_comp.write_to_json_file()
+        multi_comp.write_to_csv_file()
     except Exception as e:
         print(e)
 
@@ -234,22 +343,21 @@ def remove_company():
     """
     company_name = input("Enter company name to remove")
     multi_comp.remove_comp(company_name)
+    multi_comp.write_to_json_file()
+    multi_comp.write_to_csv_file()
 
 
 if __name__ == '__main__':
     multi_comp = MulCompanies()
     while True:
         choice = int(input("Enter your choice: \n1)add employee  \n2)remove employee \n3)display "
-                           "employee\n4)update data  \n5)remove company \n6)display company \n"
-                           "7)exit\n"))
+                           "employee\n4)update data  \n5)remove company "
+                           "\n6)display company \n7) Read json file\n8) Read csv file\n9)Enter 0 to exit\n"))
 
         choice_dict = {1: add_employees, 2: delete_employee, 3: disp_employee,
-                       4: update_employee, 5: remove_company, 6: display_company}
+                       4: update_employee, 5: remove_company, 6: display_company, 7: read_from_json, 8: read_from_csv}
 
         if choice == 0:
             break
-        elif choice > 8:
-            print("Enter correct choice")
         else:
             choice_dict.get(choice)()
-
