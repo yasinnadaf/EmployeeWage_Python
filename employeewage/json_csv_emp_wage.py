@@ -1,6 +1,7 @@
 import csv
 import json
 import logging
+import os.path
 import random
 
 logging.basicConfig(filename='example.log', encoding='utf-8', level=logging.DEBUG)
@@ -226,24 +227,41 @@ class MulCompanies:
 def read_from_json():
     """
     Function to read
-    :return:
+
     """
-    with open("emp_wage.json", "r") as read_file:
-        json_object = json.load(read_file)
-        print(json_object)
+    try:
+        if os.path.getsize('emp_wage.json') == 0:
+            print("-->File not exist<--")
+        else:
+            with open("emp_wage.json", "r") as read_file:
+                json_object = json.load(read_file)
+                print(json_object)
+    except Exception as e:
+        logging.exception(e)
+
+
 
 
 def read_from_csv():
+    """
+    Function to read csv file
+    """
     try:
-        with open("emp_wage.csv", "r") as read_csv:
-            csv_obj = csv.DictReader(read_csv)
-            for rows in csv_obj:
-                print(rows)
+        if os.path.getsize('emp_wage.csv') == 0:
+            print("--> File not exist <--")
+        else:
+            with open("emp_wage.csv", "r") as read_csv:
+                csv_obj = csv.DictReader(read_csv)
+                for rows in csv_obj:
+                    print(rows)
     except Exception as e:
         logging.exception(e)
 
 
 def add_employees():
+    """
+    Function to add employees
+    """
     try:
         company_name = input("Enter company name: ")
         company_obj = multi_comp.comp_dic.get(company_name)
@@ -274,9 +292,6 @@ def disp_employee():
             print("--> company not found or deleted <--")
             return
         company_obj.display_details()
-
-        multi_comp.write_to_json_file()
-        multi_comp.write_to_csv_file()
     except Exception as e:
         print(e)
 
@@ -303,8 +318,6 @@ def display_company():
     """
     try:
         multi_comp.display_comp()
-        multi_comp.write_to_json_file()
-        multi_comp.write_to_csv_file()
     except Exception as e:
         logging.exception(e)
 
