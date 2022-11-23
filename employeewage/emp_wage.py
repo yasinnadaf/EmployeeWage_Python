@@ -7,11 +7,11 @@ logging.basicConfig(filename='example.log', encoding='utf-8', level=logging.DEBU
 
 
 class Employee:
-    def __init__(self, employee_name, wage_per_hr=20, total_work_hrs=100, working_day_pm=20):
-        self.wage_per_hr = wage_per_hr
-        self.total_work_hrs = total_work_hrs
-        self.working_day_per_month = working_day_pm
-        self.name = employee_name
+    def __init__(self, emp_parameter_dict):
+        self.name = emp_parameter_dict.get("employee_name")
+        self.wage_per_hr = emp_parameter_dict.get("employee_wage")
+        self.total_work_hrs = emp_parameter_dict.get("max_working_hrs")
+        self.working_day_per_month = emp_parameter_dict.get("max_working_days")
         self.total_wage = 0
 
     def get_daily_wage(self, attendance):
@@ -88,7 +88,6 @@ class Company:
     def remove_emp(self, empl_name):
         """
         Function deletes existing employee from the employee_dict dictionary
-        :return:
         """
         try:
             if not self.get_emp(empl_name):
@@ -225,8 +224,8 @@ class MulCompanies:
 
 def read_from_json():
     """
-    Function to read
-    :return:
+    Function to read json file
+
     """
     with open("emp_wage.json", "r") as read_file:
         json_object = json.load(read_file)
@@ -234,6 +233,9 @@ def read_from_json():
 
 
 def read_from_csv():
+    """
+    Function for reading csv file
+    """
     try:
         with open("emp_wage.csv", "r") as read_csv:
             csv_obj = csv.DictReader(read_csv)
@@ -251,10 +253,12 @@ def add_employees():
             company_obj = Company(company_name)
             multi_comp.add_company(company_obj)
         emp_name = input("Employee name: ")
-        wage_pr_hr = int(input("Enter wage per hours: "))
+        wage_per_hr = int(input("Enter wage per hours: "))
         max_hrs = int(input("Enter maximum working hour: "))
         max_days = int(input("Enter maximum working days: "))
-        employee = Employee(emp_name, wage_pr_hr, max_hrs, max_days)
+        data_dict = {"employee_name": emp_name, "employee_wage": wage_per_hr, "max_working_days": max_days,
+                     "max_working_hrs": max_hrs}
+        employee = Employee(data_dict)
         employee.wage_monthly()
         company_obj.add_emp(employee)
         multi_comp.write_to_json_file()
@@ -274,9 +278,6 @@ def disp_employee():
             print("--> company not found or deleted <--")
             return
         company_obj.display_details()
-
-        multi_comp.write_to_json_file()
-        multi_comp.write_to_csv_file()
     except Exception as e:
         print(e)
 
@@ -303,8 +304,6 @@ def display_company():
     """
     try:
         multi_comp.display_comp()
-        multi_comp.write_to_json_file()
-        multi_comp.write_to_csv_file()
     except Exception as e:
         logging.exception(e)
 
